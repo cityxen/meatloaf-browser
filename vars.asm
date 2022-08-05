@@ -43,9 +43,11 @@ help_text:
 .text " - RESTORE MEATLOAF SPRITE"
 .byte $0d
 .byte $0d
-.text "    WRITTEN BY DEADLINE/CITYXEN "
+.text "WRITTEN BY DEADLINE/CITYXEN - AUG 2022"
+.byte $0d
 .byte $0d
 .text "(GITHUB.COM/CITYXEN/MEATLOAF-BROWSER)"
+.byte $0d
 .byte $0d
 .byte 0
 top_bar_text:
