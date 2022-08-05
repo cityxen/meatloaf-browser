@@ -2,45 +2,129 @@
 // meatloaf browser prototype
 // for the commodore 64
 
-//.segmentdef sprites
-//.file [name="_in.spr", segments="sprites"]
-
 #import "Constants.asm"
+#import "macros.asm"
 
+.segmentdef main
+.segmentdef sprites
+.segmentdef vars
+.file [name="mlb.all.prg", segments="Default,sprites,main,vars"]
+.file [name="mlb.spr", segments="sprites"]
+
+.segment vars
+*=$2a00 "Vars"
+#import "vars.asm"
+
+.segment sprites
+*=$3000 "Sprites"
+#import "sprites/meatloaf-sprites.asm"
+
+////////////////////////////////////////////////////
+
+.segment main
 *=$0801 "BASIC"
  :BasicUpstart($0810)
 *=$0810
 
-.const X_POS = $8f
-.const Y_POS = $85
+.const X0_POS = $19
+.const Y0_POS = $e4
+.const X1_POS = $19
+.const Y1_POS = $e4
+.const X2_POS = $19
+.const Y2_POS = $e4
+.const X3_POS = $19
+.const Y3_POS = $e4
+.const X4_POS = $19
+.const Y4_POS = $e4
+.const X5_POS = $19
+.const Y5_POS = $e4
+
+////////////////////////////////////////////////////
 
 begin_code:
+
     sei
     ClearScreen(BLACK)
 
-    lda #$01
+    lda #$0a
+    sta drive_number
+
+    lda #$ff
     sta SPRITE_ENABLE
+
     lda #$00
+    sta SPRITE_EXPAND_X
+    sta SPRITE_EXPAND_Y
     sta SPRITE_MULTICOLOR
     sta SPRITE_MSB_X
 
     lda #$c0
     sta SPRITE_0_POINTER
+    lda #$c1
+    sta SPRITE_1_POINTER
+    lda #$c2
+    sta SPRITE_2_POINTER
+    lda #$c3
+    sta SPRITE_3_POINTER
+    lda #$c4
+    sta SPRITE_4_POINTER
+    lda #$c5
+    sta SPRITE_5_POINTER
     
-    lda #X_POS
+    lda #X0_POS
     sta SPRITE_0_X
-    lda #Y_POS
+    lda #Y0_POS
     sta SPRITE_0_Y
+
+    lda #X1_POS
+    sta SPRITE_1_X
+    lda #Y1_POS
+    sta SPRITE_1_Y
+
+    lda #X2_POS
+    sta SPRITE_2_X
+    lda #Y2_POS
+    sta SPRITE_2_Y
     
-    lda #YELLOW
+    lda #X3_POS
+    sta SPRITE_3_X
+    lda #Y3_POS
+    sta SPRITE_3_Y
+    
+    lda #X4_POS
+    sta SPRITE_4_X
+    lda #Y4_POS
+    sta SPRITE_4_Y
+
+    lda #X5_POS
+    sta SPRITE_5_X
+    lda #Y5_POS
+    sta SPRITE_5_Y
+        
+    lda spriteset_attrib_data
     sta SPRITE_0_COLOR
+    lda spriteset_attrib_data+1
+    sta SPRITE_1_COLOR
+    lda spriteset_attrib_data+2
+    sta SPRITE_2_COLOR
+    lda spriteset_attrib_data+3
+    sta SPRITE_3_COLOR
+    lda spriteset_attrib_data+4
+    sta SPRITE_4_COLOR
+    lda spriteset_attrib_data+5
+    sta SPRITE_5_COLOR
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Start main loop
 
 mainloop:
-    lda #< top_bar_text
-    sta $fb
-    lda #> top_bar_text
-    sta $fc
-    jsr print_string_tbz
+
+    ClearScreen(BLACK)
+    inc $d020
+    PrintString(top_bar_text)
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Check keys hit loop
 
 keyloop:
 
@@ -82,23 +166,11 @@ keyloop:
 !check_next_key:
     cmp #KEY_E // E hit
     bne !check_next_key+
-
-    lda #0
+    lda #$02
     sta $d020
-
     jsr zeroize_filename_buffer
-
-    lda #< enter_filename_text
-    sta $fb
-    lda #> enter_filename_text
-    sta $fc
-    jsr print_string_tbz
-
-    lda #< dir_presskey_text
-    sta $fb
-    lda #> dir_presskey_text
-    sta $fc
-    jsr print_string_tbz
+    PrintString(enter_filename_text)
+    PrintString(dir_presskey_text)
 
 !kg:
     jsr KERNAL_GETIN
@@ -111,32 +183,47 @@ keyloop:
 !check_next_key:
     cmp #KEY_Q // Q hit
     bne !check_next_key+
-    rts
+    rts // exit program
+
+!check_next_key:
+    cmp #KEY_F1 // F1 hit
+    bne !check_next_key+
+    jsr show_help
+    jmp mainloop
 
 !check_next_key:
     jmp keyloop
 
-color_byte:
-.byte 4
-color_byte_underline:
-.byte 1
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Show help
 
-////////////////////////////////////////////////////
-load_data:
-    // Clear screen
+show_help:
+
+    lda SPRITE_ENABLE // disable sprites
+    sta sprite_enable_store
+    lda #$00
+    sta SPRITE_ENABLE
+
     ClearScreen(BLACK)
+    PrintString(help_text_title)
+    PrintString(help_text)
+    PrintString(dir_presskey_text)
+    WaitKey()
 
-    // write LOADING to screen
-    lda #< load_loading
-    sta $fb
-    lda #> load_loading
-    sta $fc
-    jsr print_string_tbz
+    lda sprite_enable_store // re-enable sprites
+    sta SPRITE_ENABLE
 
-    // draw filename to screencode
-    cld
-    clc
-!ld:
+    rts
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Load file
+
+load_data:
+
+    ClearScreen(BLACK)
+    PrintString(load_loading)
+
+!ld: // draw filename to screencode
     ldx #0
 !ld:
     lda filename,x
@@ -151,32 +238,27 @@ poke_screen:
     inx
     jmp !ld-
 
-    // Load the file
-!ld:
+!ld: // Load the file
     stx filename_length
     txa
     tay
-    ldx #0
+    ldx #$00
 !ld:
-    lda #43
-    sta SCREEN_RAM+48,x
-    lda color_byte_underline
-    sta COLOR_RAM+48,x
     inx
     dey
-    cpy #0
+    cpy #$00
     bne !ld-
-    lda #$01
+    lda #$01 
     ldx drive_number
-    ldy #$01
+    ldy #$01 // 0 - load address over ride 1 - secondary address
     jsr KERNAL_SETLFS
     lda filename_length
     ldx #<filename
     ldy #>filename
     jsr KERNAL_SETNAM
-    ldx #00 // Set Load Address
-    ldy #00 //
-    lda #00
+    ldx drive_override_load_address_lo // Set Load Address
+    ldy drive_override_load_address_hi // 
+    lda #00 // 0 - load 1 - verify
     jsr KERNAL_LOAD
     lda #13
     jsr KERNAL_CHROUT
@@ -184,11 +266,7 @@ poke_screen:
     jsr show_drive_status
     ldx #$00
 !ld:
-    lda #< dir_presskey_text
-    sta $fb
-    lda #> dir_presskey_text
-    sta $fc
-    jsr print_string_tbz
+    PrintString(dir_presskey_text)
 !ld:
     jsr KERNAL_GETIN
     beq !ld-
@@ -196,18 +274,45 @@ poke_screen:
     ClearScreen(BLACK)
     rts
 
-load_loading:
-.encoding "screencode_mixed"
-.text "LOADING "
-.byte 0
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Show drive status
 
-////////////////////////////////////////////////////
+show_drive_status2:
+    lda #$00
+    ldx #$00
+    ldy #$00
+    jsr KERNAL_SETNAM
+    lda #$0f
+    ldx drive_number
+    ldy #$0f
+    jsr KERNAL_SETLFS
+    jsr KERNAL_OPEN
+    bcs sds2_error
+    ldx #$0f
+    jsr KERNAL_CHKIN
+!sds2:
+    jsr KERNAL_READST
+    bne !sds2+
+    jsr KERNAL_CHRIN
+    jsr KERNAL_CHROUT
+    jmp !sds2-
+
+!sds2:
+    lda #$0f
+    jsr KERNAL_CLOSE
+    jsr KERNAL_CLRCHN
+
+sds2_error:
+    rts
+
 show_drive_status:
+
     lda #$00
     sta $90 // clear status flags
     lda drive_number // device number
     jsr KERNAL_LISTEN
-    lda #$6f // secondary address
+
+    lda #$01 //6f // secondary address
     jsr KERNAL_SECLSN
     jsr KERNAL_UNLSTN
     lda $90
@@ -227,13 +332,18 @@ sds_eof:
     rts
 sds_devnp:
     // handle device not present error handling
+    PrintString(device_not_present_text)
+    jsr draw_drive_number
+    PrintString(device_not_present_text2)
     rts
 
-////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Set filename buffer
+
 set_filename_buffer:
+
     jsr zeroize_filename_buffer
-    ldx #0
+    ldx #$00
 !sfb:
     lda filename1,x
     beq !sfb+
@@ -244,82 +354,50 @@ set_filename_buffer:
     stx filename_length
     rts
 
-////////////////////////////////////////////////////
-// Print string terminated by zero
-// requires low byte in $fb (zero page)
-// requires high byte in $fc
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Print string terminated by zero, requires low byte in $fb (zero page), high byte in $fc
+
 print_string_tbz:
-    ldy #0
+
+    ldy #$00
 !pst:
     lda ($fb),y
     beq !pst+
     jsr KERNAL_CHROUT
-    clc
     inc $fb
-    bcc !pst2+
+    bne !pst-
     inc $fc
-!pst2:
     jmp !pst-
 !pst:
     rts
 
-////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Zeroize filename buffer
+
 zeroize_filename_buffer:
-    ldx #0
+
+    ldx #$00
 !zfb:
-    lda #0
+    lda #$00
     sta filename,x
     inx
-    cmp #0
+    cmp #$00
     bne !zfb-
     rts
 
-////////////////////////////////////////////////////
-// Some vars
-*=$2a00 "Vars"
-dir_presskey_text:
-.encoding "screencode_mixed"
-.byte $0d
-.text "PRESS ANY KEY"
-.byte 0
-enter_filename_text:
-.encoding "screencode_mixed"
-.byte $0d
-.text "ENTER MANUALLY:"
-.byte 0
-drive_number:
-.byte 10
-filename_length:
-.byte 35
-filename: // reserve space for filename buffer
-.encoding "screencode_upper"
-.byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-.byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-.byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-.byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-.byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-.byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-.byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-.byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-filename1:
-.text "http://192.168.1.71/m64/ml.1.spr"
-.byte 0
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Print Drive Number to screen
 
-top_bar_text:
-.encoding "screencode_mixed"
-.text "MEATLOAF BROWSER BY DEADLINE - 1,2,3 or E"
-.byte 0
-
-// .segment sprites
-*=$3000 "Sprites"
-//#import "sprites/sprite-hg1.asm"
-#import "sprites/cxn-sprite - Sprites.asm"
-
-.macro ClearScreen(color) {
-    lda #$93
-    jsr KERNAL_CHROUT    // $FFD2
-    lda #color
-    sta BACKGROUND_COLOR // $D020
-    sta BORDER_COLOR     // $D021
-}
+draw_drive_number:
+    
+    lda drive_number // Show Drive Number on Screen
+    clc // clear carry flag so we don't rotate carry into a
+    rol // rotate left (multiply by 2)
+    sec // sec carry flag for subtract operation
+    sbc #$10 // subtract 16
+    tax
+    lda drive_number_text,x // get text indexed by x
+    jsr KERNAL_CHROUT
+    lda drive_number_text+1,x
+    jsr KERNAL_CHROUT
+    rts
