@@ -37,8 +37,15 @@ help_text:
 .text " - MANUALLY ENTER ADDRESS"
 .byte $0d
 .byte $0d
-.text "WRITTEN BY DEADLINE/CITYXEN"
+.text "reR"
+.byte 30
+.byte 146
+.text " - RESTORE MEATLOAF SPRITE"
 .byte $0d
+.byte $0d
+.text "    WRITTEN BY DEADLINE/CITYXEN "
+.byte $0d
+.text "(GITHUB.COM/CITYXEN/MEATLOAF-BROWSER)"
 .byte $0d
 .byte 0
 top_bar_text:
@@ -73,7 +80,7 @@ device_not_present_text2:
 .byte $0d
 .byte 0
 drive_number_text:
-.text "0809101112131415161718192021222324252627282930313233343536373839404142434445"
+.text "0809101112131415161718192021222324252627282930"
 drive_number:
 .byte 10
 filename_length:
@@ -89,6 +96,13 @@ filename: // reserve space for filename buffer
 .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 filename1:
+.encoding "ascii"
+.text "http://192.168.1.71/m64/ml.1.spr"
+.byte 0
+.text "https://github.com/cityxen/meatloaf-browser/blob/main/M64/ML.1.SPR"
+.byte 0
+.text "HTTPS://GITHUB.COM/CITYXEN/MEATLOAF-BROWSER/BLOB/MAIN/m64/ml.1.spr"
+.byte 0
 .text "http://192.168.1.71/m64/ml.1.spr"
 .byte 0
 .text "http://tech.cityxen.net/m64/ml.1.spr"

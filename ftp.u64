@@ -1,0 +1,8 @@
+open 192.168.1.4 21
+guest
+anonymous
+dir
+cd Usb2
+binary
+put mlb.prg
+quit

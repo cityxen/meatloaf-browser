@@ -11,6 +11,10 @@
 .file [name="mlb.all.prg", segments="Default,sprites,main,vars"]
 .file [name="mlb.spr", segments="sprites"]
 
+.disk [filename="mlb.d64", name="MEATLOAF BROWSER", id="2022!" ] {
+	[name="MLB", type="prg",  segments="Default,sprites,main,vars"],
+}
+
 .segment vars
 *=$2a00 "Vars"
 #import "vars.asm"
@@ -26,8 +30,8 @@
  :BasicUpstart($0810)
 *=$0810
 
-.const X0_POS = $19
-.const Y0_POS = $e4
+.const X0_POS = $90
+.const Y0_POS = $80
 .const X1_POS = $19
 .const Y1_POS = $e4
 .const X2_POS = $19
@@ -38,6 +42,8 @@
 .const Y4_POS = $e4
 .const X5_POS = $19
 .const Y5_POS = $e4
+.const X6_POS = $19
+.const Y6_POS = $e4
 
 ////////////////////////////////////////////////////
 
@@ -52,9 +58,10 @@ begin_code:
     lda #$ff
     sta SPRITE_ENABLE
 
-    lda #$00
+    lda #$01
     sta SPRITE_EXPAND_X
     sta SPRITE_EXPAND_Y
+    lda #$00
     sta SPRITE_MULTICOLOR
     sta SPRITE_MSB_X
 
@@ -70,6 +77,8 @@ begin_code:
     sta SPRITE_4_POINTER
     lda #$c5
     sta SPRITE_5_POINTER
+    lda #$c6
+    sta SPRITE_6_POINTER
     
     lda #X0_POS
     sta SPRITE_0_X
@@ -100,8 +109,13 @@ begin_code:
     sta SPRITE_5_X
     lda #Y5_POS
     sta SPRITE_5_Y
+
+    lda #X6_POS
+    sta SPRITE_6_X
+    lda #Y6_POS
+    sta SPRITE_6_Y
         
-    lda spriteset_attrib_data
+    lda #YELLOW
     sta SPRITE_0_COLOR
     lda spriteset_attrib_data+1
     sta SPRITE_1_COLOR
@@ -113,6 +127,8 @@ begin_code:
     sta SPRITE_4_COLOR
     lda spriteset_attrib_data+5
     sta SPRITE_5_COLOR
+    lda spriteset_attrib_data+6
+    sta SPRITE_6_COLOR
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Start main loop
@@ -134,6 +150,7 @@ keyloop:
     cmp #$31 // 1 hit
     bne !check_next_key+
     jsr set_filename_buffer
+    // ldx #$3d
     ldx #27
     lda #$31
     sta filename,x
@@ -145,6 +162,7 @@ keyloop:
     cmp #$32 // 2 hit
     bne !check_next_key+
     jsr set_filename_buffer
+    // ldx #$3d
     ldx #27
     lda #$32
     sta filename,x
@@ -156,6 +174,7 @@ keyloop:
     cmp #$33 // 3 hit
     bne !check_next_key+
     jsr set_filename_buffer
+    // ldx #$3d
     ldx #27
     lda #$33
     sta filename,x
@@ -179,11 +198,22 @@ keyloop:
     inc $d020
     jmp mainloop
 
-
 !check_next_key:
     cmp #KEY_Q // Q hit
     bne !check_next_key+
     rts // exit program
+
+!check_next_key:
+    cmp #KEY_R // R hit (restore meatloaf sprite)
+    bne !check_next_key+
+    ldx #$00
+!restore_ml_sprite:
+    lda sprite_image_6,x
+    sta sprite_image_0,x
+    inx
+    cpx #64
+    bne !restore_ml_sprite-
+    jmp mainloop
 
 !check_next_key:
     cmp #KEY_F1 // F1 hit
