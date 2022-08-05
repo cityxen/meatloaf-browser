@@ -1,0 +1,44 @@
+.label draw_drive_number=$b04
+.label drive_number_text=$2b36
+.label color_byte_underline=$2ceb
+.label print_string_tbz=$ae4
+.label drive_override_load_address_hi=$2ced
+.label filename=$2b84
+.label device_not_present_text=$2b13
+.label help_text=$2a2c
+.label filename_length=$2b83
+.label mainloop=$8b4 {
+}
+.label sprite_enable_store=$2cee
+.label dir_presskey_text=$2af2
+.label poke_screen=$9eb
+.label show_drive_status2=$a4f
+.label color_byte=$2cea
+.label zeroize_filename_buffer=$af7
+.label set_filename_buffer=$acf
+.label device_not_present_text2=$2b27
+.label help_text_title=$2a00
+.label keyloop=$8cf
+.label drive_number=$2b82
+.label top_bar_text=$2abb
+.label show_drive_status=$a83
+.label sds_loop=$aa4
+.label spriteset_attrib_data=$3180
+.label filename1=$2ca4
+.label sprite_image_1=$3040
+.label sprite_image_0=$3000
+.label sprite_image_3=$30c0
+.label sprite_image_2=$3080
+.label sprite_image_5=$3140
+.label sprite_image_4=$3100
+.label sds2_error=$a82
+.label begin_code=$810
+.label drive_override_load_address_lo=$2cec
+.label load_loading=$2ae8
+.label load_data=$9c6 {
+}
+.label sds_devnp=$ab5 {
+}
+.label enter_filename_text=$2b02
+.label show_help=$981
+.label sds_eof=$ab1
