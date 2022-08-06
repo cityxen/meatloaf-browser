@@ -1,55 +1,51 @@
-
 ////////////////////////////////////////////////////
 // Some vars
 .encoding "screencode_mixed"
 help_text_title:
 .text "reMEATLOAF BROWSER - HELP                 "
-.byte 146
-.byte 0
+.byte 146, 0
+
 help_text:
-.byte 146
-.byte 30
-.byte $0d
+.byte 146, 30, $0d
 .text "OPTIONS"
-.byte $0d
-.byte $0d
+.byte $0d, $0d
 .text "re1"
-.byte 30
-.byte 146
+.byte 30, 146
 .text " - LOAD SPRITE 1"
 .byte $0d
-.byte $0d
 .text "re2"
-.byte 30
-.byte 146
+.byte 30, 146
 .text " - LOAD SPRITE 2"
 .byte $0d
-.byte $0d
 .text "re3"
-.byte 30
-.byte 146
+.byte 30, 146
 .text " - LOAD SPRITE 3"
+.byte $0d, $0d
+.text "re4"
+.byte 30, 146
+.text " - LOAD SPRITE 1 (LAN)"
 .byte $0d
+.text "re5"
+.byte 30, 146
+.text " - LOAD SPRITE 2 (LAN)"
 .byte $0d
+.text "re6"
+.byte 30, 146
+.text " - LOAD SPRITE 3 (LAN)"
+.byte $0d, $0d
 .text "reE"
-.byte 30
-.byte 146
+.byte 30, 146
 .text " - MANUALLY ENTER ADDRESS"
-.byte $0d
-.byte $0d
+.byte $0d, $0d
 .text "reR"
-.byte 30
-.byte 146
+.byte 30, 146
 .text " - RESTORE MEATLOAF SPRITE"
-.byte $0d
-.byte $0d
+.byte $0d, $0d
 .text "WRITTEN BY DEADLINE/CITYXEN - AUG 2022"
-.byte $0d
-.byte $0d
+.byte $0d, $0d
 .text "(GITHUB.COM/CITYXEN/MEATLOAF-BROWSER)"
-.byte $0d
-.byte $0d
-.byte 0
+.byte $0d, $0d, 0
+
 top_bar_text:
 .text "reMEATLOAF BROWSER                 F1-HELP"
 .byte 146
@@ -87,7 +83,7 @@ drive_number:
 .byte 10
 filename_length:
 .byte 35
-filename: // reserve space for filename buffer
+filename_buffer: // reserve space for filename buffer
 .encoding "screencode_upper"
 .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
@@ -98,16 +94,23 @@ filename: // reserve space for filename buffer
 .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 filename1:
-.encoding "ascii"
-.text "http://192.168.1.71/m64/ml.1.spr"
-.byte 0
-.text "https://github.com/cityxen/meatloaf-browser/blob/main/M64/ML.1.SPR"
-.byte 0
-.text "HTTPS://GITHUB.COM/CITYXEN/MEATLOAF-BROWSER/BLOB/MAIN/m64/ml.1.spr"
-.byte 0
-.text "http://192.168.1.71/m64/ml.1.spr"
-.byte 0
+.encoding "screencode_upper"
 .text "http://tech.cityxen.net/m64/ml.1.spr"
+.byte 0
+filename2:
+.text "http://tech.cityxen.net/m64/ml.2.spr"
+.byte 0
+filename3:
+.text "http://tech.cityxen.net/m64/ml.3.spr"
+.byte 0
+filename_lan1:
+.text "http://192.168.1.71/m64/ml.1.spr"
+.byte 0
+filename_lan2:
+.text "http://192.168.1.71/m64/ml.2.spr"
+.byte 0
+filename_lan3:
+.text "http://192.168.1.71/m64/ml.3.spr"
 .byte 0
 color_byte:
 .byte 1

@@ -149,11 +149,7 @@ keyloop:
 !check_next_key:
     cmp #$31 // 1 hit
     bne !check_next_key+
-    jsr set_filename_buffer
-    // ldx #$3d
-    ldx #27
-    lda #$31
-    sta filename,x
+    SetFileName(filename1)
     jsr load_data
     ClearScreen(BLACK)
     jmp mainloop
@@ -161,11 +157,7 @@ keyloop:
 !check_next_key:
     cmp #$32 // 2 hit
     bne !check_next_key+
-    jsr set_filename_buffer
-    // ldx #$3d
-    ldx #27
-    lda #$32
-    sta filename,x
+    SetFileName(filename2)
     jsr load_data
     ClearScreen(BLACK)
     jmp mainloop
@@ -173,11 +165,31 @@ keyloop:
 !check_next_key:
     cmp #$33 // 3 hit
     bne !check_next_key+
-    jsr set_filename_buffer
-    // ldx #$3d
-    ldx #27
-    lda #$33
-    sta filename,x
+    SetFileName(filename3)
+    jsr load_data
+    ClearScreen(BLACK)
+    jmp mainloop
+
+!check_next_key:
+    cmp #$34 // 4 hit
+    bne !check_next_key+
+    SetFileName(filename_lan1)
+    jsr load_data
+    ClearScreen(BLACK)
+    jmp mainloop
+
+!check_next_key:
+    cmp #$35 // 5 hit
+    bne !check_next_key+
+    SetFileName(filename_lan2)
+    jsr load_data
+    ClearScreen(BLACK)
+    jmp mainloop
+
+!check_next_key:
+    cmp #$36 // 6 hit
+    bne !check_next_key+
+    SetFileName(filename_lan3)
     jsr load_data
     ClearScreen(BLACK)
     jmp mainloop
@@ -250,13 +262,18 @@ show_help:
 
 load_data:
 
+    cli
+
+    lda #$00
+    sta $94
+
     ClearScreen(BLACK)
     PrintString(load_loading)
 
 !ld: // draw filename to screencode
     ldx #0
 !ld:
-    lda filename,x
+    lda filename_buffer,x
     beq !ld+
     cmp #96
     bcc poke_screen
@@ -269,38 +286,40 @@ poke_screen:
     jmp !ld-
 
 !ld: // Load the file
+
+    
     stx filename_length
     txa
-    tay
-    ldx #$00
-!ld:
-    inx
-    dey
-    cpy #$00
-    bne !ld-
-    lda #$01 
-    ldx drive_number
-    ldy #$01 // 0 - load address over ride 1 - secondary address
-    jsr KERNAL_SETLFS
-    lda filename_length
-    ldx #<filename
-    ldy #>filename
+    ldx #<filename_buffer
+    ldy #>filename_buffer
     jsr KERNAL_SETNAM
-    ldx drive_override_load_address_lo // Set Load Address
-    ldy drive_override_load_address_hi // 
-    lda #00 // 0 - load 1 - verify
+
+    lda #$01
+    ldx drive_number
+    ldy #$01 // 0 - Load address over ride 1 - secondary address
+    jsr KERNAL_SETLFS
+
+    ldx #$00 // drive_override_load_address_lo // Set Load Address
+    ldy #$00 // drive_override_load_address_hi
+    lda #$00 // 0 - load 1 - verify
     jsr KERNAL_LOAD
+
+    inc $d020
+
+    jsr KERNAL_UNTALK
+    jsr KERNAL_CLOSE
+
     lda #13
     jsr KERNAL_CHROUT
     jsr KERNAL_CHROUT
-    jsr show_drive_status
+    // jsr show_drive_status
     ldx #$00
+
+    sei
+
 !ld:
     PrintString(dir_presskey_text)
-!ld:
-    jsr KERNAL_GETIN
-    beq !ld-
-
+    WaitKey()
     ClearScreen(BLACK)
     rts
 
@@ -308,6 +327,7 @@ poke_screen:
 // Show drive status
 
 show_drive_status2:
+
     lda #$00
     ldx #$00
     ldy #$00
@@ -368,23 +388,6 @@ sds_devnp:
     rts
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Set filename buffer
-
-set_filename_buffer:
-
-    jsr zeroize_filename_buffer
-    ldx #$00
-!sfb:
-    lda filename1,x
-    beq !sfb+
-    sta filename,x
-    inx
-    jmp !sfb-
-!sfb:
-    stx filename_length
-    rts
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Print string terminated by zero, requires low byte in $fb (zero page), high byte in $fc
 
 print_string_tbz:
@@ -409,7 +412,7 @@ zeroize_filename_buffer:
     ldx #$00
 !zfb:
     lda #$00
-    sta filename,x
+    sta filename_buffer,x
     inx
     cmp #$00
     bne !zfb-
