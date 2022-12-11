@@ -4,24 +4,32 @@
 
 #import "Constants.asm"
 #import "macros.asm"
+#import "DrawPetMateScreen.asm"
 
 .segmentdef main
 .segmentdef sprites
 .segmentdef vars
-.file [name="mlb.all.prg", segments="Default,sprites,main,vars"]
+.segmentdef help_screen
+.file [name="mlb.all.prg", segments="Default,sprites,main,vars,help_screen"]
 .file [name="mlb.spr", segments="sprites"]
 
 .disk [filename="mlb.d64", name="MEATLOAF BROWSER", id="2022!" ] {
-	[name="MLB", type="prg",  segments="Default,sprites,main,vars"],
+	[name="MLB", type="prg",  segments="Default,sprites,main,vars,help_screen"],
 }
 
-.segment vars
-*=$2a00 "Vars"
-#import "vars.asm"
+.segment help_screen
+*=$c000 "Help Screen"
+#import "screens/screen-help-1.asm"
 
 .segment sprites
-*=$3000 "Sprites"
+.var sprloc = $c800
+*=sprloc "Sprites"
 #import "sprites/meatloaf-sprites.asm"
+
+.segment vars
+*=$cd00 "Vars"
+#import "version.asm"
+#import "vars.asm"
 
 ////////////////////////////////////////////////////
 
@@ -49,11 +57,9 @@
 
 begin_code:
 
-    sei
-    ClearScreen(BLACK)
+    jsr CopySprites
 
-    lda #$0a
-    sta drive_number
+    ClearScreen(BLACK)
 
     lda #$ff
     sta SPRITE_ENABLE
@@ -137,7 +143,22 @@ mainloop:
 
     ClearScreen(BLACK)
     inc $d020
+
+    lda #23
+    sta 53272 // set lower case
+
     PrintString(top_bar_text)
+    PrintStringLF(version)
+    PrintString(drive_text)
+    jsr draw_drive_number
+    lda #$0d
+    jsr KERNAL_CHROUT
+
+    PrintString(drive_status_text)
+    jsr show_drive_status
+    lda #$0d
+    jsr KERNAL_CHROUT
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Check keys hit loop
@@ -195,6 +216,30 @@ keyloop:
     jmp mainloop
 
 !check_next_key:
+    cmp #$37 // 7 hit
+    bne !check_next_key+
+    SetFileName(filename_disk1)
+    jsr load_data
+    ClearScreen(BLACK)
+    jmp mainloop
+
+!check_next_key:
+    cmp #$38 // 8 hit
+    bne !check_next_key+
+    SetFileName(filename_disk2)
+    jsr load_data
+    ClearScreen(BLACK)
+    jmp mainloop
+
+!check_next_key:
+    cmp #$39 // 9 hit
+    bne !check_next_key+
+    SetFileName(filename_disk3)
+    jsr load_data
+    ClearScreen(BLACK)
+    jmp mainloop    
+
+!check_next_key:
     cmp #KEY_E // E hit
     bne !check_next_key+
     lda #$02
@@ -240,83 +285,109 @@ keyloop:
 // Show help
 
 show_help:
-
     lda SPRITE_ENABLE // disable sprites
     sta sprite_enable_store
     lda #$00
     sta SPRITE_ENABLE
-
-    ClearScreen(BLACK)
-    PrintString(help_text_title)
-    PrintString(help_text)
-    PrintString(dir_presskey_text)
+    DrawPetMateScreen(help_screen)
     WaitKey()
-
     lda sprite_enable_store // re-enable sprites
     sta SPRITE_ENABLE
-
     rts
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Copy Sprites
+
+CopySprites:
+    ldx #$00
+cpsloop:
+    lda sprloc,x
+    sta $3000,x
+    lda sprloc+256,x
+    sta $3000+256,x
+    inx
+    cpx #184
+    bne cpsloop
+    rts
+    
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Load file
 
 load_data:
 
-    cli
-
-    lda #$00
-    sta $94
-
     ClearScreen(BLACK)
     PrintString(load_loading)
+    PrintString(color_white)
+    PrintString(filename_buffer)
 
-!ld: // draw filename to screencode
-    ldx #0
-!ld:
-    lda filename_buffer,x
-    beq !ld+
-    cmp #96
-    bcc poke_screen
-    sbc #96
-poke_screen:
-    sta SCREEN_RAM+8,x
-    lda color_byte
-    sta COLOR_RAM+8,x
+    ldx filename_length
+    lda #$00
+    sta filename_buffer,x
     inx
-    jmp !ld-
+    sta filename_buffer,x
 
 !ld: // Load the file
 
-    
-    stx filename_length
-    txa
+    lda filename_length
     ldx #<filename_buffer
     ldy #>filename_buffer
     jsr KERNAL_SETNAM
 
-    lda #$01
+    lda #01
     ldx drive_number
-    ldy #$01 // 0 - Load address over ride 1 - secondary address
+    ldy #01 // 0 - Load address over ride 1 - secondary address
     jsr KERNAL_SETLFS
 
-    ldx #$00 // drive_override_load_address_lo // Set Load Address
-    ldy #$00 // drive_override_load_address_hi
+    // ldx #$ff // drive_override_load_address_lo // Set Load Address
+    // ldy #$ff // drive_override_load_address_hi
     lda #$00 // 0 - load 1 - verify
     jsr KERNAL_LOAD
 
     inc $d020
+    lda #$0d
+    jsr KERNAL_CHROUT
+    jsr KERNAL_CHROUT
+    jsr show_drive_status
+    ldx #$00
+!ld:
+    PrintString(dir_presskey_text)
+    WaitKey()
+    ClearScreen(BLACK)
+    rts
 
-    jsr KERNAL_UNTALK
+
+load_data2:
+
+    ClearScreen(BLACK)
+    PrintString(load_loading)
+    PrintString(color_white)
+    PrintString(filename_buffer)
+
+!ld: // Load the file
+    lda filename_length
+    ldx #<filename_buffer
+    ldy #>filename_buffer
+    jsr KERNAL_SETNAM
+
+    lda #01
+    ldx drive_number
+    ldy #96 // 0 - Load address over ride 1 - secondary address
+    jsr KERNAL_SETLFS
+
+    ldx #$ff // drive_override_load_address_lo // Set Load Address
+    ldy #$ff // drive_override_load_address_hi
+    lda #$00 // 0 - load 1 - verify
+    jsr KERNAL_LOAD
+
+    lda #$00
     jsr KERNAL_CLOSE
 
-    lda #13
+    inc $d020
+    lda #$0d
     jsr KERNAL_CHROUT
     jsr KERNAL_CHROUT
-    // jsr show_drive_status
+    jsr show_drive_status
     ldx #$00
-
-    sei
-
 !ld:
     PrintString(dir_presskey_text)
     WaitKey()
@@ -345,6 +416,9 @@ show_drive_status2:
     bne !sds2+
     jsr KERNAL_CHRIN
     jsr KERNAL_CHROUT
+
+    jsr waiter_loop
+
     jmp !sds2-
 
 !sds2:
@@ -354,6 +428,18 @@ show_drive_status2:
 
 sds2_error:
     rts
+
+waiter_loop:
+    rts
+!wl:
+    inc $fb
+    bne !wl-
+    inc $fc
+    bne !wl-
+    rts
+
+
+
 
 show_drive_status:
 
@@ -391,7 +477,6 @@ sds_devnp:
 // Print string terminated by zero, requires low byte in $fb (zero page), high byte in $fc
 
 print_string_tbz:
-
     ldy #$00
 !pst:
     lda ($fb),y
@@ -404,6 +489,12 @@ print_string_tbz:
 !pst:
     rts
 
+print_string_tbz_lf:
+    jsr print_string_tbz
+    lda #$0d
+    jsr KERNAL_CHROUT
+    rts
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Zeroize filename buffer
 
@@ -414,7 +505,6 @@ zeroize_filename_buffer:
     lda #$00
     sta filename_buffer,x
     inx
-    cmp #$00
     bne !zfb-
     rts
 

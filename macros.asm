@@ -15,6 +15,14 @@
     jsr print_string_tbz
 }
 
+.macro PrintStringLF(x) {
+    lda #< x
+    sta $fb
+    lda #> x
+    sta $fc
+    jsr print_string_tbz_lf
+}
+
 .macro WaitKey() {
 !wk:
     jsr KERNAL_GETIN
