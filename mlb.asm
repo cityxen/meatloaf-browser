@@ -308,7 +308,7 @@ cpsloop:
     lda sprloc+256,x
     sta $3000+256,x
     inx
-    cpx #184
+    cpx #185
     bne cpsloop
     rts
     

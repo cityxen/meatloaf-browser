@@ -7,6 +7,8 @@
 ## Screenshots
 
 ![mainpage](https://raw.githubusercontent.com/cityxen/meatloaf-browser/master/images/mlb.png)
+![helppage](https://raw.githubusercontent.com/cityxen/meatloaf-browser/master/images/mlb-help.png)
+
 
 The idea for this is to present a standard to allow users to set up a webserver to host files for the c64 online.
 

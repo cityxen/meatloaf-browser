@@ -1,7 +1,7 @@
-.label draw_drive_number=$d22
+.label draw_drive_number=$ca4
 .label drive_number_text=$cda2
 .label color_byte_underline=$cfe0
-.label print_string_tbz=$cfb
+.label print_string_tbz=$c7d
 .label drive_override_load_address_hi=$cfe2
 .label version=$cd00
 .label drive_status_text=$cd1f
@@ -11,18 +11,18 @@
 .label mainloop=$8c7
 .label sprite_enable_store=$cfe3
 .label dir_presskey_text=$cd5e
-.label show_drive_status2=$c6e
+.label show_drive_status2=$bf0
 .label drive_text=$cd18
 .label color_byte=$cfdf
-.label zeroize_filename_buffer=$d17
+.label zeroize_filename_buffer=$c99
 .label device_not_present_text2=$cd93
-.label waiter_loop=$ca5
+.label waiter_loop=$c27
 .label keyloop=$91b
 .label drive_number=$cdd0
 .label top_bar_text=$cd27
-.label show_drive_status=$caf
-.label sds_loop=$cd0
-.label print_string_tbz_lf=$d0e
+.label show_drive_status=$c31
+.label sds_loop=$c52
+.label print_string_tbz_lf=$c90
 .label spriteset_attrib_data=$c9c0
 .label filename3=$cf3c
 .label filename2=$cf17
@@ -36,11 +36,9 @@
 .label sprite_image_2=$c880
 .label sprite_image_5=$c940
 .label sprite_image_4=$c900
-.label sds2_error=$ca4
+.label sds2_error=$c26
 .label begin_code=$810
 .label drive_override_load_address_lo=$cfe1
-.label load_data2=$bf0 {
-}
 .label load_loading=$cd54
 .label load_data=$b6f {
 }
@@ -49,12 +47,12 @@
 .label CopySprites=$b5b
 .label filename_disk1=$cfc4
 .label filename_disk3=$cfd6
-.label sds_devnp=$ce1 {
+.label sds_devnp=$c63 {
 }
 .label enter_filename_text=$cd6e
 .label show_help=$b01
 .label cpsloop=$b5d
-.label sds_eof=$cdd
+.label sds_eof=$c5f
 .label filename_lan3=$cfa3
 .label filename_lan1=$cf61
 .label filename_lan2=$cf82
