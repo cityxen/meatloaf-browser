@@ -57,93 +57,13 @@
 
 begin_code:
 
-    jsr CopySprites
-
-    ClearScreen(BLACK)
-
-    lda #$ff
-    sta SPRITE_ENABLE
-
-    lda #$01
-    sta SPRITE_EXPAND_X
-    sta SPRITE_EXPAND_Y
-    lda #$00
-    sta SPRITE_MULTICOLOR
-    sta SPRITE_MSB_X
-
-    lda #$c0
-    sta SPRITE_0_POINTER
-    lda #$c1
-    sta SPRITE_1_POINTER
-    lda #$c2
-    sta SPRITE_2_POINTER
-    lda #$c3
-    sta SPRITE_3_POINTER
-    lda #$c4
-    sta SPRITE_4_POINTER
-    lda #$c5
-    sta SPRITE_5_POINTER
-    lda #$c6
-    sta SPRITE_6_POINTER
-    
-    lda #X0_POS
-    sta SPRITE_0_X
-    lda #Y0_POS
-    sta SPRITE_0_Y
-
-    lda #X1_POS
-    sta SPRITE_1_X
-    lda #Y1_POS
-    sta SPRITE_1_Y
-
-    lda #X2_POS
-    sta SPRITE_2_X
-    lda #Y2_POS
-    sta SPRITE_2_Y
-    
-    lda #X3_POS
-    sta SPRITE_3_X
-    lda #Y3_POS
-    sta SPRITE_3_Y
-    
-    lda #X4_POS
-    sta SPRITE_4_X
-    lda #Y4_POS
-    sta SPRITE_4_Y
-
-    lda #X5_POS
-    sta SPRITE_5_X
-    lda #Y5_POS
-    sta SPRITE_5_Y
-
-    lda #X6_POS
-    sta SPRITE_6_X
-    lda #Y6_POS
-    sta SPRITE_6_Y
-        
-    lda #YELLOW
-    sta SPRITE_0_COLOR
-    lda spriteset_attrib_data+1
-    sta SPRITE_1_COLOR
-    lda spriteset_attrib_data+2
-    sta SPRITE_2_COLOR
-    lda spriteset_attrib_data+3
-    sta SPRITE_3_COLOR
-    lda spriteset_attrib_data+4
-    sta SPRITE_4_COLOR
-    lda spriteset_attrib_data+5
-    sta SPRITE_5_COLOR
-    lda spriteset_attrib_data+6
-    sta SPRITE_6_COLOR
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Start main loop
 
 mainloop:
 
-    jsr CopySprites
-
     ClearScreen(BLACK)
+    jsr InitSprites
     inc $d020
 
     lda #23
@@ -298,6 +218,88 @@ show_help:
     rts
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Init Sprites
+
+InitSprites:
+    jsr CopySprites
+
+    lda #$ff
+    sta SPRITE_ENABLE
+
+    lda #$01
+    sta SPRITE_EXPAND_X
+    sta SPRITE_EXPAND_Y
+    lda #$00
+    sta SPRITE_MULTICOLOR
+    sta SPRITE_MSB_X
+
+    lda #$c0
+    sta SPRITE_0_POINTER
+    lda #$c1
+    sta SPRITE_1_POINTER
+    lda #$c2
+    sta SPRITE_2_POINTER
+    lda #$c3
+    sta SPRITE_3_POINTER
+    lda #$c4
+    sta SPRITE_4_POINTER
+    lda #$c5
+    sta SPRITE_5_POINTER
+    lda #$c6
+    sta SPRITE_6_POINTER
+    
+    lda #X0_POS
+    sta SPRITE_0_X
+    lda #Y0_POS
+    sta SPRITE_0_Y
+
+    lda #X1_POS
+    sta SPRITE_1_X
+    lda #Y1_POS
+    sta SPRITE_1_Y
+
+    lda #X2_POS
+    sta SPRITE_2_X
+    lda #Y2_POS
+    sta SPRITE_2_Y
+    
+    lda #X3_POS
+    sta SPRITE_3_X
+    lda #Y3_POS
+    sta SPRITE_3_Y
+    
+    lda #X4_POS
+    sta SPRITE_4_X
+    lda #Y4_POS
+    sta SPRITE_4_Y
+
+    lda #X5_POS
+    sta SPRITE_5_X
+    lda #Y5_POS
+    sta SPRITE_5_Y
+
+    lda #X6_POS
+    sta SPRITE_6_X
+    lda #Y6_POS
+    sta SPRITE_6_Y
+        
+    lda #YELLOW
+    sta SPRITE_0_COLOR
+    lda spriteset_attrib_data+1
+    sta SPRITE_1_COLOR
+    lda spriteset_attrib_data+2
+    sta SPRITE_2_COLOR
+    lda spriteset_attrib_data+3
+    sta SPRITE_3_COLOR
+    lda spriteset_attrib_data+4
+    sta SPRITE_4_COLOR
+    lda spriteset_attrib_data+5
+    sta SPRITE_5_COLOR
+    lda spriteset_attrib_data+6
+    sta SPRITE_6_COLOR
+    rts
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Copy Sprites
 
 CopySprites:
@@ -335,7 +337,7 @@ load_data:
     ldy #>filename_buffer
     jsr KERNAL_SETNAM
 
-    lda #01
+    lda #0
     ldx drive_number
     ldy #01 // 0 - Load address over ride 1 - secondary address
     jsr KERNAL_SETLFS

@@ -5,4 +5,5 @@ dir
 cd Usb2
 binary
 put mlb.prg
+put mlb-basic.d64
 quit
