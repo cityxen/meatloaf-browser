@@ -1,4 +1,5 @@
 version:
+.encoding "petscii_upper"
 .byte 30
-.text "VERSION:<VERSION>"
+.text "vERSION:<VERSION>"
 .byte 0

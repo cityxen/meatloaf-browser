@@ -1,21 +1,37 @@
 ////////////////////////////////////////////////////
 // Some vars
-.encoding "screencode_mixed"
 
+.const X0_POS = $a0
+.const Y0_POS = $80
+.const X1_POS = $19
+.const Y1_POS = $e4
+.const X2_POS = $19
+.const Y2_POS = $e4
+.const X3_POS = $19
+.const Y3_POS = $e4
+.const X4_POS = $19
+.const Y4_POS = $e4
+.const X5_POS = $19
+.const Y5_POS = $e4
+.const X6_POS = $19
+.const Y6_POS = $e4
+
+
+.encoding "petscii_upper"
 drive_text:
-.text "DRIVE:"
+.text "dRIVE:"
 .byte 0
 drive_status_text:
-.text "STATUS:"
+.text "sTATUS:"
 .byte 0
 
+.encoding "screencode_mixed"
 top_bar_text:
 .text "re"
 .encoding "petscii_upper"
 .text "mEATLOAF bROWSER                 f1-help"
 .encoding "screencode_mixed"
 .byte 146
-.byte $0d
 .byte 0
 load_loading:
 .byte 156

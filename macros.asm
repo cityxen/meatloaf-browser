@@ -23,6 +23,11 @@
     jsr print_string_tbz_lf
 }
 
+.macro PrintLF() {
+    lda #$0d
+    jsr KERNAL_CHROUT
+}
+
 .macro WaitKey() {
 !wk:
     jsr KERNAL_GETIN
@@ -40,4 +45,21 @@
     jmp !sfb-
 !sfb:
     stx filename_length
+}
+
+.macro KeyFileLoad(key,file) {
+    cmp #key
+    bne !kfs+
+    SetFileName(file)
+    jsr load_data
+    jmp mainloop
+!kfs:
+}
+
+.macro KeySub(key,subroutine) {
+    cmp #key
+    bne !kfs+
+    jsr subroutine
+    jmp mainloop
+!kfs:
 }

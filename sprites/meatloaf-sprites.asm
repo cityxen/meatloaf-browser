@@ -51,8 +51,8 @@ sprite_image_6:
 //; nb. Upper nybbles = MYXV, lower nybbles = colour (0-15).
 
 //* = addr_spriteset_attrib_data
-spriteset_attrib_data:
 
+spriteset_attrib_data:
 .byte $01,$02,$08,$07,$05,$03,$01
 
 

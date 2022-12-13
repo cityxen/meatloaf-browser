@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////
-// meatloaf browser prototype
-// for the commodore 64
+// Meatloaf Browser Prototype for the Commodore 64
+// Written by Deadline/CityXen
 
 #import "Constants.asm"
 #import "macros.asm"
@@ -10,6 +10,7 @@
 .segmentdef sprites
 .segmentdef vars
 .segmentdef help_screen
+
 .file [name="mlb.all.prg", segments="Default,sprites,main,vars,help_screen"]
 .file [name="mlb.spr", segments="sprites"]
 
@@ -18,173 +19,65 @@
 }
 
 .segment help_screen
-*=$c000 "Help Screen"
+*=$2000 "Help Screen"
 #import "screens/screen-help-1.asm"
 
 .segment sprites
-.const sprloc = $c800
+.const sprloc = $4000
 *=sprloc "Sprites"
 #import "sprites/meatloaf-sprites.asm"
 
 .segment vars
-*=$cd00 "Vars"
+*=$1d00 "Vars"
 #import "version.asm"
 #import "vars.asm"
-
-////////////////////////////////////////////////////
 
 .segment main
 *=$0801 "BASIC"
  :BasicUpstart($0810)
 *=$0810
 
-.const X0_POS = $90
-.const Y0_POS = $80
-.const X1_POS = $19
-.const Y1_POS = $e4
-.const X2_POS = $19
-.const Y2_POS = $e4
-.const X3_POS = $19
-.const Y3_POS = $e4
-.const X4_POS = $19
-.const Y4_POS = $e4
-.const X5_POS = $19
-.const Y5_POS = $e4
-.const X6_POS = $19
-.const Y6_POS = $e4
-
-////////////////////////////////////////////////////
-
-begin_code:
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Init somethings
+    
+    jsr InitSprites
+    lda #23
+    sta VIC_MEM_POINTERS // set lower case
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Start main loop
 
 mainloop:
-
     ClearScreen(BLACK)
-    jsr InitSprites
     inc $d020
-
-    lda #23
-    sta 53272 // set lower case
-
     PrintString(top_bar_text)
     PrintStringLF(version)
-    PrintString(drive_text)
     jsr draw_drive_number
-    lda #$0d
-    jsr KERNAL_CHROUT
-
-    PrintString(drive_status_text)
     jsr show_drive_status
-    lda #$0d
-    jsr KERNAL_CHROUT
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Check keys hit loop
 
 keyloop:
-
     jsr KERNAL_GETIN
+    KeyFileLoad(KEY_1,filename1)
+    KeyFileLoad(KEY_2,filename2)
+    KeyFileLoad(KEY_3,filename3)
+    KeyFileLoad(KEY_4,filename_lan1)
+    KeyFileLoad(KEY_5,filename_lan2)
+    KeyFileLoad(KEY_6,filename_lan3)
+    KeyFileLoad(KEY_7,filename_disk1)
+    KeyFileLoad(KEY_8,filename_disk2)
+    KeyFileLoad(KEY_9,filename_disk3)
+    KeySub(KEY_F1,show_help)
+    KeySub(KEY_E,enter_file_manual)
+    KeySub(KEY_R,restore_meatloaf_sprite)
+    jmp keyloop
 
-!check_next_key:
-    cmp #$31 // 1 hit
-    bne !check_next_key+
-    SetFileName(filename1)
-    jsr load_data
-    ClearScreen(BLACK)
-    jmp mainloop
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Restore Meatloaf Sprite
 
-!check_next_key:
-    cmp #$32 // 2 hit
-    bne !check_next_key+
-    SetFileName(filename2)
-    jsr load_data
-    ClearScreen(BLACK)
-    jmp mainloop
-
-!check_next_key:
-    cmp #$33 // 3 hit
-    bne !check_next_key+
-    SetFileName(filename3)
-    jsr load_data
-    ClearScreen(BLACK)
-    jmp mainloop
-
-!check_next_key:
-    cmp #$34 // 4 hit
-    bne !check_next_key+
-    SetFileName(filename_lan1)
-    jsr load_data
-    ClearScreen(BLACK)
-    jmp mainloop
-
-!check_next_key:
-    cmp #$35 // 5 hit
-    bne !check_next_key+
-    SetFileName(filename_lan2)
-    jsr load_data
-    ClearScreen(BLACK)
-    jmp mainloop
-
-!check_next_key:
-    cmp #$36 // 6 hit
-    bne !check_next_key+
-    SetFileName(filename_lan3)
-    jsr load_data
-    ClearScreen(BLACK)
-    jmp mainloop
-
-!check_next_key:
-    cmp #$37 // 7 hit
-    bne !check_next_key+
-    SetFileName(filename_disk1)
-    jsr load_data
-    ClearScreen(BLACK)
-    jmp mainloop
-
-!check_next_key:
-    cmp #$38 // 8 hit
-    bne !check_next_key+
-    SetFileName(filename_disk2)
-    jsr load_data
-    ClearScreen(BLACK)
-    jmp mainloop
-
-!check_next_key:
-    cmp #$39 // 9 hit
-    bne !check_next_key+
-    SetFileName(filename_disk3)
-    jsr load_data
-    ClearScreen(BLACK)
-    jmp mainloop    
-
-!check_next_key:
-    cmp #KEY_E // E hit
-    bne !check_next_key+
-    lda #$02
-    sta $d020
-    jsr zeroize_filename_buffer
-    PrintString(enter_filename_text)
-    PrintString(dir_presskey_text)
-
-!kg:
-    jsr KERNAL_GETIN
-    beq !kg-
-    ClearScreen(BLACK)
-    inc $d020
-    jmp mainloop
-
-!check_next_key:
-    cmp #KEY_Q // Q hit
-    bne !check_next_key+
-    rts // exit program
-
-!check_next_key:
-    cmp #KEY_R // R hit (restore meatloaf sprite)
-    bne !check_next_key+
+restore_meatloaf_sprite:
     ldx #$00
 !restore_ml_sprite:
     lda sprite_image_6,x
@@ -192,16 +85,21 @@ keyloop:
     inx
     cpx #64
     bne !restore_ml_sprite-
-    jmp mainloop
 
-!check_next_key:
-    cmp #KEY_F1 // F1 hit
-    bne !check_next_key+
-    jsr show_help
-    jmp mainloop
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Enter filename manually
 
-!check_next_key:
-    jmp keyloop
+enter_file_manual:
+    lda #$02
+    sta $d020
+    jsr zeroize_filename_buffer
+    PrintString(enter_filename_text)
+    PrintString(dir_presskey_text)
+!kg:
+    jsr KERNAL_GETIN
+    beq !kg-
+    rts
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Show help
@@ -318,20 +216,16 @@ cpsloop:
 // Load file
 
 load_data:
-
     ClearScreen(BLACK)
     PrintString(load_loading)
     PrintString(color_white)
     PrintString(filename_buffer)
-
     ldx filename_length
     lda #$00
     sta filename_buffer,x
     inx
     sta filename_buffer,x
-
 !ld: // Load the file
-
     lda filename_length
     ldx #<filename_buffer
     ldy #>filename_buffer
@@ -341,9 +235,6 @@ load_data:
     ldx drive_number
     ldy #01 // 0 - Load address over ride 1 - secondary address
     jsr KERNAL_SETLFS
-
-    // ldx #$ff // drive_override_load_address_lo // Set Load Address
-    // ldy #$ff // drive_override_load_address_hi
     lda #$00 // 0 - load 1 - verify
     jsr KERNAL_LOAD
 
@@ -362,57 +253,12 @@ load_data:
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Show drive status
 
-show_drive_status2:
-
-    lda #$00
-    ldx #$00
-    ldy #$00
-    jsr KERNAL_SETNAM
-    lda #$0f
-    ldx drive_number
-    ldy #$0f
-    jsr KERNAL_SETLFS
-    jsr KERNAL_OPEN
-    bcs sds2_error
-    ldx #$0f
-    jsr KERNAL_CHKIN
-!sds2:
-    jsr KERNAL_READST
-    bne !sds2+
-    jsr KERNAL_CHRIN
-    jsr KERNAL_CHROUT
-
-    jsr waiter_loop
-
-    jmp !sds2-
-
-!sds2:
-    lda #$0f
-    jsr KERNAL_CLOSE
-    jsr KERNAL_CLRCHN
-
-sds2_error:
-    rts
-
-waiter_loop:
-    rts
-!wl:
-    inc $fb
-    bne !wl-
-    inc $fc
-    bne !wl-
-    rts
-
-
-
-
 show_drive_status:
-
+    PrintString(drive_status_text)
     lda #$00
     sta $90 // clear status flags
     lda drive_number // device number
     jsr KERNAL_LISTEN
-
     lda #$01 //6f // secondary address
     jsr KERNAL_SECLSN
     jsr KERNAL_UNLSTN
@@ -430,12 +276,14 @@ sds_loop:
     jmp sds_loop
 sds_eof:
     jsr KERNAL_UNTALK
+    PrintLF()
     rts
 sds_devnp:
     // handle device not present error handling
     PrintString(device_not_present_text)
     jsr draw_drive_number
     PrintString(device_not_present_text2)
+    PrintLF()
     rts
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -464,7 +312,6 @@ print_string_tbz_lf:
 // Zeroize filename buffer
 
 zeroize_filename_buffer:
-
     ldx #$00
 !zfb:
     lda #$00
@@ -477,7 +324,7 @@ zeroize_filename_buffer:
 // Print Drive Number to screen
 
 draw_drive_number:
-    
+    PrintString(drive_text)
     lda drive_number // Show Drive Number on Screen
     clc // clear carry flag so we don't rotate carry into a
     rol // rotate left (multiply by 2)
@@ -488,4 +335,5 @@ draw_drive_number:
     jsr KERNAL_CHROUT
     lda drive_number_text+1,x
     jsr KERNAL_CHROUT
+    PrintLF()
     rts

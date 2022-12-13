@@ -19,16 +19,16 @@
     sta 1024+256,x
     lda screen_name+2+512,x
     sta 1024+512,x
-    lda screen_name+2+512+256,x
-    sta 1024+512+256,x
-    lda screen_name+1000+2,x
-    sta COLOR_RAM,x // And now the colors
+    lda screen_name+2+512+232,x
+    sta 1024+512+232,x
+    lda screen_name+1000+2,x // And now the colors
+    sta COLOR_RAM,x
     lda screen_name+1000+2+256,x
     sta COLOR_RAM+256,x
     lda screen_name+1000+2+512,x
     sta COLOR_RAM+512,x
-    lda screen_name+1000+2+512+256,x
-    sta COLOR_RAM+512+256,x
+    lda screen_name+1000+2+512+232,x
+    sta COLOR_RAM+512+232,x
     inx
     cpx #$00
     bne !dpms_loop-

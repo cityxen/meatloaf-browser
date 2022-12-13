@@ -36,3 +36,34 @@ load_data2:
     WaitKey()
     ClearScreen(BLACK)
     rts
+
+
+
+show_drive_status2:
+
+    lda #$00
+    ldx #$00
+    ldy #$00
+    jsr KERNAL_SETNAM
+    lda #$0f
+    ldx drive_number
+    ldy #$0f
+    jsr KERNAL_SETLFS
+    jsr KERNAL_OPEN
+    bcs sds2_error
+    ldx #$0f
+    jsr KERNAL_CHKIN
+!sds2:
+    jsr KERNAL_READST
+    bne !sds2+
+    jsr KERNAL_CHRIN
+    jsr KERNAL_CHROUT
+    jmp !sds2-
+
+!sds2:
+    lda #$0f
+    jsr KERNAL_CLOSE
+    jsr KERNAL_CLRCHN
+
+sds2_error:
+    rts
