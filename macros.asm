@@ -63,3 +63,10 @@
     jmp mainloop
 !kfs:
 }
+
+.macro KeySubNoMain(key,subroutine) {
+    cmp #key
+    bne !kfs+
+    jsr subroutine
+!kfs:
+}

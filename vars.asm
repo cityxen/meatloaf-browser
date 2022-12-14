@@ -3,6 +3,7 @@
 
 .const X0_POS = $a0
 .const Y0_POS = $80
+
 .const X1_POS = $19
 .const Y1_POS = $e4
 .const X2_POS = $19
@@ -64,7 +65,7 @@ drive_number_text:
 drive_number:
 .byte 8
 filename_length:
-.byte 35
+.byte 255
 filename_buffer: // reserve space for filename buffer
 .encoding "screencode_upper"
 .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0

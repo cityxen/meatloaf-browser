@@ -11,38 +11,43 @@
 .segmentdef vars
 .segmentdef help_screen
 
-.file [name="mlb.all.prg", segments="Default,sprites,main,vars,help_screen"]
+.file [name="mlb", segments="Default,sprites,main,vars,help_screen"]
 .file [name="mlb.spr", segments="sprites"]
 
 .disk [filename="mlb.d64", name="MEATLOAF BROWSER", id="2022!" ] {
 	[name="MLB", type="prg",  segments="Default,sprites,main,vars,help_screen"],
+    [name="ML.SPRITES", type="prg", segments="sprites"],
+    [name="ML.1.SPR", type="prg", prgFiles="sprites/ML.1.SPR"],
+    [name="ML.2.SPR", type="prg", prgFiles="sprites/ML.2.SPR"],
+    [name="ML.3.SPR", type="prg", prgFiles="sprites/ML.3.SPR"],
 }
 
 .segment help_screen
-*=$2000 "Help Screen"
+*=$2000 "HELP SCREEN"
 #import "screens/screen-help-1.asm"
 
-.segment sprites
-.const sprloc = $4000
-*=sprloc "Sprites"
-#import "sprites/meatloaf-sprites.asm"
-
 .segment vars
-*=$1d00 "Vars"
+*=$27d2 "VARIABLES"
 #import "version.asm"
 #import "vars.asm"
 
+.segment sprites
+.const sprloc = $3200
+*=sprloc "SPRITES"
+#import "sprites/meatloaf_sprites.asm"
+
 .segment main
-*=$0801 "BASIC"
+*=$0801 "BASIC UPSTART"
  :BasicUpstart($0810)
-*=$0810
+*=$0810 "ACTUAL PROGRAM"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Init somethings
-    
-    jsr InitSprites
+
     lda #23
     sta VIC_MEM_POINTERS // set lower case
+
+    jsr InitSprites
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Start main loop
@@ -53,7 +58,7 @@ mainloop:
     PrintString(top_bar_text)
     PrintStringLF(version)
     jsr draw_drive_number
-    jsr show_drive_status
+    // jsr show_drive_status
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Check keys hit loop
@@ -72,7 +77,21 @@ keyloop:
     KeySub(KEY_F1,show_help)
     KeySub(KEY_E,enter_file_manual)
     KeySub(KEY_R,restore_meatloaf_sprite)
+
+    KeySubNoMain(KEY_L,move_spr_3x)
+    KeySubNoMain(KEY_O,move_spr_3y)
+
     jmp keyloop
+
+
+////// TEMP
+
+move_spr_3x:
+    inc SPRITE_3_X
+    rts
+move_spr_3y:
+    inc SPRITE_3_Y
+    rts
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Restore Meatloaf Sprite
@@ -85,6 +104,7 @@ restore_meatloaf_sprite:
     inx
     cpx #64
     bne !restore_ml_sprite-
+    rts
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Enter filename manually
@@ -120,17 +140,14 @@ show_help:
 
 InitSprites:
     jsr CopySprites
-
     lda #$ff
     sta SPRITE_ENABLE
-
     lda #$01
     sta SPRITE_EXPAND_X
     sta SPRITE_EXPAND_Y
     lda #$00
     sta SPRITE_MULTICOLOR
     sta SPRITE_MSB_X
-
     lda #$c0
     sta SPRITE_0_POINTER
     lda #$c1
@@ -145,55 +162,47 @@ InitSprites:
     sta SPRITE_5_POINTER
     lda #$c6
     sta SPRITE_6_POINTER
-    
     lda #X0_POS
     sta SPRITE_0_X
     lda #Y0_POS
     sta SPRITE_0_Y
-
     lda #X1_POS
     sta SPRITE_1_X
     lda #Y1_POS
     sta SPRITE_1_Y
-
     lda #X2_POS
     sta SPRITE_2_X
     lda #Y2_POS
     sta SPRITE_2_Y
-    
     lda #X3_POS
     sta SPRITE_3_X
     lda #Y3_POS
     sta SPRITE_3_Y
-    
     lda #X4_POS
     sta SPRITE_4_X
     lda #Y4_POS
     sta SPRITE_4_Y
-
     lda #X5_POS
     sta SPRITE_5_X
     lda #Y5_POS
     sta SPRITE_5_Y
-
     lda #X6_POS
     sta SPRITE_6_X
     lda #Y6_POS
     sta SPRITE_6_Y
-        
     lda #YELLOW
     sta SPRITE_0_COLOR
-    lda spriteset_attrib_data+1
+    lda sprite_image_1+63
     sta SPRITE_1_COLOR
-    lda spriteset_attrib_data+2
+    lda sprite_image_2+63
     sta SPRITE_2_COLOR
-    lda spriteset_attrib_data+3
+    lda sprite_image_3+63
     sta SPRITE_3_COLOR
-    lda spriteset_attrib_data+4
+    lda sprite_image_4+63
     sta SPRITE_4_COLOR
-    lda spriteset_attrib_data+5
+    lda sprite_image_5+63
     sta SPRITE_5_COLOR
-    lda spriteset_attrib_data+6
+    lda sprite_image_6+63
     sta SPRITE_6_COLOR
     rts
 
@@ -226,64 +235,31 @@ load_data:
     inx
     sta filename_buffer,x
 !ld: // Load the file
+
     lda filename_length
     ldx #<filename_buffer
     ldy #>filename_buffer
     jsr KERNAL_SETNAM
 
-    lda #0
+    lda #15
     ldx drive_number
-    ldy #01 // 0 - Load address over ride 1 - secondary address
+    ldy #0
     jsr KERNAL_SETLFS
-    lda #$00 // 0 - load 1 - verify
+
+    lda #00
+    ldx #00 // Set Load Address
+    ldy #00 // 
     jsr KERNAL_LOAD
 
     inc $d020
     lda #$0d
     jsr KERNAL_CHROUT
     jsr KERNAL_CHROUT
-    jsr show_drive_status
     ldx #$00
 !ld:
     PrintString(dir_presskey_text)
     WaitKey()
     ClearScreen(BLACK)
-    rts
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Show drive status
-
-show_drive_status:
-    PrintString(drive_status_text)
-    lda #$00
-    sta $90 // clear status flags
-    lda drive_number // device number
-    jsr KERNAL_LISTEN
-    lda #$01 //6f // secondary address
-    jsr KERNAL_SECLSN
-    jsr KERNAL_UNLSTN
-    lda $90
-    bne sds_devnp // device not present
-    lda drive_number
-    jsr KERNAL_TALK
-    lda #$6f // secondary address
-    jsr KERNAL_SECTLK
-sds_loop:
-    lda $90 // get status flags
-    bne sds_eof
-    jsr KERNAL_IECIN
-    jsr KERNAL_CHROUT
-    jmp sds_loop
-sds_eof:
-    jsr KERNAL_UNTALK
-    PrintLF()
-    rts
-sds_devnp:
-    // handle device not present error handling
-    PrintString(device_not_present_text)
-    jsr draw_drive_number
-    PrintString(device_not_present_text2)
-    PrintLF()
     rts
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
