@@ -1,4 +1,4 @@
-open 192.168.1.4 21
+open 10.1.10.4 21
 guest
 anonymous
 dir

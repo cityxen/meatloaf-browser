@@ -81,6 +81,11 @@ keyloop:
     KeySubNoMain(KEY_L,move_spr_3x)
     KeySubNoMain(KEY_O,move_spr_3y)
 
+    cmp #KEY_Q
+    bne !kfs+
+    rts
+!kfs:
+
     jmp keyloop
 
 

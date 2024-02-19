@@ -87,13 +87,13 @@ filename3:
 .text "http://tech.cityxen.net/m64/ml.3.spr"
 .byte 0
 filename_lan1:
-.text "http://192.168.1.71/m64/ml.1.spr"
+.text "http://10.1.10.200/m64/ml.1.spr"
 .byte 0
 filename_lan2:
-.text "http://192.168.1.71/m64/ml.2.spr"
+.text "http://10.1.10.200/m64/ml.2.spr"
 .byte 0
 filename_lan3:
-.text "http://192.168.1.71/m64/ml.3.spr"
+.text "http://10.1.10.200/m64/ml.3.spr"
 .byte 0
 filename_disk1:
 .text "ml.1.spr"
