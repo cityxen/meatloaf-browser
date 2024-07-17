@@ -4,6 +4,7 @@ anonymous
 dir
 cd Usb2
 binary
-put mlb.prg
+put prg_files/smlb.prg
+put prg_files/mlb.prg
 put mlb-basic.d64
 quit

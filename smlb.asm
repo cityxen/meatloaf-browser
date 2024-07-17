@@ -1,71 +1,43 @@
-////////////////////////////////////////////////////
-// Meatloaf Browser Prototype for the Commodore 64
-// Written by Deadline/CityXen
-
 #import "Constants.asm"
+
 #import "macros.asm"
-#import "DrawPetMateScreen.asm"
 
-.segmentdef main
-.segmentdef sprites
-.segmentdef vars
-.segmentdef help_screen
 
-.file [name="mlb.prg", segments="Default,sprites,main,vars,help_screen"]
-.file [name="mlb.spr", segments="sprites"]
+.file [name="mlb.prg", segments="Default"]
 
-.disk [filename="mlb.d64", name="MEATLOAF BROWSER", id="CXN24" ] {
-	[name="MLB", type="prg",  segments="Default,sprites,main,vars,help_screen"],
-    [name="NEWGET3", type="prg", prgFiles="basic/newget3.prg"],
-    [name="ML.SPRITES", type="prg", segments="sprites"],
-    [name="ML.1.SPR", type="prg", prgFiles="sprites/ML.1.SPR"],
-    [name="ML.2.SPR", type="prg", prgFiles="sprites/ML.2.SPR"],
-    [name="ML.3.SPR", type="prg", prgFiles="sprites/ML.3.SPR"],
-}
-
-.segment help_screen
-*=$2000 "HELP SCREEN"
-#import "screens/screen-help-1.asm"
-
-.segment vars
-*=$27d2 "VARIABLES"
-#import "version.asm"
-#import "vars.asm"
-
-.segment sprites
 .const sprloc = $3200
 *=sprloc "SPRITES"
 #import "sprites/meatloaf_sprites.asm"
 
-.segment main
+*=$0aa8
+#import "vars.asm"
+
 *=$0801 "BASIC UPSTART"
  :BasicUpstart($0810)
 *=$0810 "ACTUAL PROGRAM"
 
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Init somethings
 
+    ClearScreen(BLACK)
     lda #23
     sta VIC_MEM_POINTERS // set lower case
 
     jsr InitSprites
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Start main loop
-
 mainloop:
-    ClearScreen(BLACK)
-    inc $d020
-    PrintString(top_bar_text)
-    PrintStringLF(version)
-    jsr draw_drive_number
-    // jsr show_drive_status
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Check keys hit loop
-
-keyloop:
+!wk:
     jsr KERNAL_GETIN
+    beq !wk-
+
+    cmp #KEY_Q
+    bne !wk+
+    rts
+!wk:
+
     KeyFileLoad(KEY_1,filename1)
     KeyFileLoad(KEY_2,filename2)
     KeyFileLoad(KEY_3,filename3)
@@ -75,74 +47,11 @@ keyloop:
     KeyFileLoad(KEY_7,filename_disk1)
     KeyFileLoad(KEY_8,filename_disk2)
     KeyFileLoad(KEY_9,filename_disk3)
-    KeySub(KEY_F1,show_help)
-    KeySub(KEY_E,enter_file_manual)
-    KeySub(KEY_R,restore_meatloaf_sprite)
-
-    KeySubNoMain(KEY_L,move_spr_3x)
-    KeySubNoMain(KEY_O,move_spr_3y)
-
-    cmp #KEY_Q
-    bne !kfs+
-    rts
-!kfs:
-
-    jmp keyloop
 
 
-////// TEMP
-
-move_spr_3x:
-    inc SPRITE_3_X
-    rts
-move_spr_3y:
-    inc SPRITE_3_Y
-    rts
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Restore Meatloaf Sprite
-
-restore_meatloaf_sprite:
-    ldx #$00
-!restore_ml_sprite:
-    lda sprite_image_6,x
-    sta sprite_image_0,x
-    inx
-    cpx #64
-    bne !restore_ml_sprite-
-    rts
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Enter filename manually
-
-enter_file_manual:
-    lda #$02
-    sta $d020
-    jsr zeroize_filename_buffer
-    PrintString(enter_filename_text)
-    PrintString(dir_presskey_text)
-!kg:
-    jsr KERNAL_GETIN
-    beq !kg-
-    rts
+    jmp mainloop
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Show help
-
-show_help:
-    lda SPRITE_ENABLE // disable sprites
-    sta sprite_enable_store
-    lda #$00
-    sta SPRITE_ENABLE
-    DrawPetMateScreen(help_screen)
-    WaitKey()
-    lda sprite_enable_store // re-enable sprites
-    sta SPRITE_ENABLE
-    rts
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Init Sprites
 
 InitSprites:
     jsr CopySprites
@@ -227,14 +136,31 @@ cpsloop:
     bne cpsloop
     rts
     
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Load file
 
 load_data:
     ClearScreen(BLACK)
-    PrintString(load_loading)
-    PrintString(color_white)
-    PrintString(filename_buffer)
+
+    lda #< load_loading
+    sta $fb
+    lda #> load_loading
+    sta $fc
+    jsr print_string_tbz
+
+    lda #< color_white
+    sta $fb
+    lda #> color_white
+    sta $fc
+    jsr print_string_tbz
+
+    lda #< filename_buffer
+    sta $fb
+    lda #> filename_buffer
+    sta $fc
+    jsr print_string_tbz
+
     ldx filename_length
     lda #$00
     sta filename_buffer,x
@@ -247,9 +173,9 @@ load_data:
     ldy #>filename_buffer
     jsr KERNAL_SETNAM
 
-    lda #2
+    lda #1
     ldx drive_number
-    ldy #2
+    ldy #1
     jsr KERNAL_SETLFS
 
     lda #00
@@ -259,16 +185,23 @@ load_data:
 
     inc $d020
     lda #$0d
-
-
     jsr KERNAL_CHROUT
     jsr KERNAL_CHROUT
     ldx #$00
 !ld:
-    PrintString(dir_presskey_text)
-    WaitKey()
+    lda #< dir_presskey_text
+    sta $fb
+    lda #> dir_presskey_text
+    sta $fc
+    jsr print_string_tbz
+    
+!wk:
+    jsr KERNAL_GETIN
+    beq !wk-
+
     ClearScreen(BLACK)
     rts
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Print string terminated by zero, requires low byte in $fb (zero page), high byte in $fc
@@ -292,6 +225,7 @@ print_string_tbz_lf:
     jsr KERNAL_CHROUT
     rts
 
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Zeroize filename buffer
 
@@ -304,20 +238,4 @@ zeroize_filename_buffer:
     bne !zfb-
     rts
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Print Drive Number to screen
 
-draw_drive_number:
-    PrintString(drive_text)
-    lda drive_number // Show Drive Number on Screen
-    clc // clear carry flag so we don't rotate carry into a
-    rol // rotate left (multiply by 2)
-    sec // sec carry flag for subtract operation
-    sbc #$10 // subtract 16
-    tax
-    lda drive_number_text,x // get text indexed by x
-    jsr KERNAL_CHROUT
-    lda drive_number_text+1,x
-    jsr KERNAL_CHROUT
-    PrintLF()
-    rts
