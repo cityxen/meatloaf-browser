@@ -47,62 +47,34 @@ enter_filename_text:
 .byte $0d
 .text "ENTER MANUALLY:"
 .byte 0
-device_not_present_text:
-.byte 28
-.text "rERROR"
-.byte 146
-.text "e:"
-.byte 28
-.text "DEVICE e"
-.byte 0
-device_not_present_text2:
-.byte 28
-.text " NOT PRESENT"
-.byte $0d
-.byte 0
-drive_number_text:
-.text "0809101112131415161718192021222324252627282930"
-drive_number:
-.byte 8
-filename_length:
-.byte 255
-filename_buffer: // reserve space for filename buffer
-.encoding "screencode_upper"
-.byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-.byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-.byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-.byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-.byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-.byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-.byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-.byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+
 filename1:
-.encoding "screencode_upper"
-.text "http://ml.cityxen.biz/m64/mlb/ml.1.spr"
+.encoding "screencode_mixed"
+.text "http://tech.cityxen.net/m64/mlb/ml1"
 .byte 0
 filename2:
-.text "http://ml.cityxen.biz/m64/mlb/ml.2.spr"
+.text "http://tech.cityxen.net/m64/mlb/ml2"
 .byte 0
 filename3:
-.text "http://ml.cityxen.biz/m64/mlb/ml.3.spr"
+.text "http://tech.cityxen.net/m64/mlb/ml3"
 .byte 0
 filename_lan1:
-.text "http://10.1.10.200/m64/mlb/ml.1.spr"
+.text "http://10.1.10.200/m64/mlb/ml1"
 .byte 0
 filename_lan2:
-.text "http://10.1.10.200/m64/mlb/ml.2.spr"
+.text "http://10.1.10.200/m64/mlb/ml2"
 .byte 0
 filename_lan3:
-.text "http://10.1.10.200/m64/mlb/ml.3.spr"
+.text "http://10.1.10.200/m64/mlb/ml3"
 .byte 0
 filename_disk1:
-.text "ml.1.spr"
+.text "ML1"
 .byte 0
 filename_disk2:
-.text "ml.2.spr"
+.text "ML2"
 .byte 0
 filename_disk3:
-.text "ml.3.spr"
+.text "ML3"
 .byte 0
 color_byte:
 .byte 1

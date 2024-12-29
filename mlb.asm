@@ -3,41 +3,46 @@
 // Written by Deadline/CityXen
 
 #import "Constants.asm"
-#import "macros.asm"
+#import "Macros.asm"
 #import "DrawPetMateScreen.asm"
 
-.segmentdef main
-.segmentdef sprites
-.segmentdef vars
-.segmentdef help_screen
 
 .file [name="mlb.prg", segments="Default,sprites,main,vars,help_screen"]
-.file [name="mlb.spr", segments="sprites"]
+// .file [name="mlb.spr", segments="sprites"]
+
 
 .disk [filename="mlb.d64", name="MEATLOAF BROWSER", id="CXN24" ] {
 	[name="MLB", type="prg",  segments="Default,sprites,main,vars,help_screen"],
     [name="NEWGET3", type="prg", prgFiles="basic/newget3.prg"],
-    [name="ML.SPRITES", type="prg", segments="sprites"],
-    [name="ML.1.SPR", type="prg", prgFiles="sprites/ML.1.SPR"],
-    [name="ML.2.SPR", type="prg", prgFiles="sprites/ML.2.SPR"],
-    [name="ML.3.SPR", type="prg", prgFiles="sprites/ML.3.SPR"],
+    // [name="ML.SPRITES", type="prg", segments="sprites"],
+    [name="ML1", type="prg", prgFiles="sprites/ML.1.SPR"],
+    [name="ML2", type="prg", prgFiles="sprites/ML.2.SPR"],
+    [name="ML3", type="prg", prgFiles="sprites/ML.3.SPR"],
 }
 
-.segment help_screen
+
+
+
+.segment help_screen [allowOverlap]
 *=$2000 "HELP SCREEN"
 #import "screens/screen-help-1.asm"
 
-.segment vars
+.segment vars [allowOverlap]
 *=$27d2 "VARIABLES"
 #import "version.asm"
 #import "vars.asm"
 
-.segment sprites
+#import "sys.il.asm"
+#import "disk.il.asm"
+#import "print.il.asm"
+#import "input.il.asm"
+
+.segment sprites [allowOverlap]
 .const sprloc = $3200
 *=sprloc "SPRITES"
 #import "sprites/meatloaf_sprites.asm"
 
-.segment main
+.segment main [allowOverlap]
 *=$0801 "BASIC UPSTART"
  :BasicUpstart($0810)
 *=$0810 "ACTUAL PROGRAM"
@@ -53,31 +58,33 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Start main loop
 
-mainloop:
+main_loop:
     ClearScreen(BLACK)
     inc $d020
-    PrintString(top_bar_text)
-    PrintStringLF(version)
+    Print(top_bar_text)
+    PrintStrLF(version)
     jsr draw_drive_number
-    // jsr show_drive_status
+    jsr show_drive_status
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Check keys hit loop
 
 keyloop:
     jsr KERNAL_GETIN
-    KeyFileLoad(KEY_1,filename1)
-    KeyFileLoad(KEY_2,filename2)
-    KeyFileLoad(KEY_3,filename3)
-    KeyFileLoad(KEY_4,filename_lan1)
-    KeyFileLoad(KEY_5,filename_lan2)
-    KeyFileLoad(KEY_6,filename_lan3)
-    KeyFileLoad(KEY_7,filename_disk1)
-    KeyFileLoad(KEY_8,filename_disk2)
-    KeyFileLoad(KEY_9,filename_disk3)
+    KeyFileLoad(KEY_1,filename1,sprloc)
+    KeyFileLoad(KEY_2,filename2,sprloc)
+    KeyFileLoad(KEY_3,filename3,sprloc)
+    KeyFileLoad(KEY_4,filename_lan1,sprloc)
+    KeyFileLoad(KEY_5,filename_lan2,sprloc)
+    KeyFileLoad(KEY_6,filename_lan3,sprloc)
+    KeyFileLoad(KEY_7,filename_disk1,sprloc)
+    KeyFileLoad(KEY_8,filename_disk2,sprloc)
+    KeyFileLoad(KEY_9,filename_disk3,sprloc)
     KeySub(KEY_F1,show_help)
     KeySub(KEY_E,enter_file_manual)
     KeySub(KEY_R,restore_meatloaf_sprite)
+
+    KeySubWait(KEY_S,show_drive_status)
 
     KeySubNoMain(KEY_L,move_spr_3x)
     KeySubNoMain(KEY_O,move_spr_3y)
@@ -119,8 +126,8 @@ enter_file_manual:
     lda #$02
     sta $d020
     jsr zeroize_filename_buffer
-    PrintString(enter_filename_text)
-    PrintString(dir_presskey_text)
+    Print(enter_filename_text)
+    Print(dir_presskey_text)
 !kg:
     jsr KERNAL_GETIN
     beq !kg-
@@ -231,93 +238,12 @@ cpsloop:
 // Load file
 
 load_data:
+
     ClearScreen(BLACK)
-    PrintString(load_loading)
-    PrintString(color_white)
-    PrintString(filename_buffer)
-    ldx filename_length
-    lda #$00
-    sta filename_buffer,x
-    inx
-    sta filename_buffer,x
-!ld: // Load the file
-
-    lda filename_length
-    ldx #<filename_buffer
-    ldy #>filename_buffer
-    jsr KERNAL_SETNAM
-
-    lda #2
-    ldx drive_number
-    ldy #2
-    jsr KERNAL_SETLFS
-
-    lda #00
-    ldx #00 // Set Load Address
-    ldy #00 // 
-    jsr KERNAL_LOAD
-
-    inc $d020
-    lda #$0d
-
-
-    jsr KERNAL_CHROUT
-    jsr KERNAL_CHROUT
-    ldx #$00
+    Print(load_loading)
+    Print(color_white)
+    PrintSC2P(filename_buffer)
+    jsr load_file
 !ld:
-    PrintString(dir_presskey_text)
-    WaitKey()
-    ClearScreen(BLACK)
     rts
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Print string terminated by zero, requires low byte in $fb (zero page), high byte in $fc
-
-print_string_tbz:
-    ldy #$00
-!pst:
-    lda ($fb),y
-    beq !pst+
-    jsr KERNAL_CHROUT
-    inc $fb
-    bne !pst-
-    inc $fc
-    jmp !pst-
-!pst:
-    rts
-
-print_string_tbz_lf:
-    jsr print_string_tbz
-    lda #$0d
-    jsr KERNAL_CHROUT
-    rts
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Zeroize filename buffer
-
-zeroize_filename_buffer:
-    ldx #$00
-!zfb:
-    lda #$00
-    sta filename_buffer,x
-    inx
-    bne !zfb-
-    rts
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Print Drive Number to screen
-
-draw_drive_number:
-    PrintString(drive_text)
-    lda drive_number // Show Drive Number on Screen
-    clc // clear carry flag so we don't rotate carry into a
-    rol // rotate left (multiply by 2)
-    sec // sec carry flag for subtract operation
-    sbc #$10 // subtract 16
-    tax
-    lda drive_number_text,x // get text indexed by x
-    jsr KERNAL_CHROUT
-    lda drive_number_text+1,x
-    jsr KERNAL_CHROUT
-    PrintLF()
-    rts
